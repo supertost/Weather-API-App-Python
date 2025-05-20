@@ -1,6 +1,6 @@
 import sys
 import requests
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
 
@@ -10,15 +10,21 @@ import os
 
 class Weather(QWidget):
 
+
     def __init__(self):
 
         super().__init__()
 
 
+        self.degree_selection = "celcius"
 
         self.city_label = QLabel("Enter a city to view: ", self)
         self.city_input = QLineEdit(self)
         self.retrieve_weather_button = QPushButton("Get Weather Data",self)
+
+        self.celcius_button = QPushButton("°C",self)
+        self.fahrenheit_button = QPushButton("°F",self)
+
         self.temperature_label = QLabel(self)
         self.weather_icon_label = QLabel(self)
         self.weather_description_label = QLabel(self)
@@ -35,8 +41,8 @@ class Weather(QWidget):
     def initUI(self):
 
         self.setWindowTitle("Weather App")
-        self.setFixedSize(500, 650)
-        self.setWindowIcon(QIcon("weatherappicon.png"))
+        self.setFixedSize(500, 720)
+        self.setWindowIcon(QIcon("weather_icons/appicon.png"))
 
         #self.weather_icon_label.setGeometry(aw=25, ah=25)
 
@@ -49,7 +55,15 @@ class Weather(QWidget):
         vbox.addWidget(self.weather_icon_label)
         vbox.addWidget(self.weather_description_label)
 
+        hbox = QHBoxLayout()
+
+        hbox.addWidget(self.celcius_button)
+        hbox.addWidget(self.fahrenheit_button)
+
+        vbox.addLayout(hbox)
+
         self.setLayout(vbox)
+
 
         self.city_label.setAlignment(Qt.AlignCenter)
         self.city_input.setAlignment(Qt.AlignCenter)
@@ -138,7 +152,26 @@ class Weather(QWidget):
                            
         """)
 
+
+        self.celcius_button.setStyleSheet("background-color: #575757;")
+
         self.retrieve_weather_button.clicked.connect(self.get_weather)
+
+        # Fahrenheit - Celcius Conversion
+        self.celcius_button.clicked.connect(self.celcius_selection)
+        self.fahrenheit_button.clicked.connect(self.fahrenheit_selection)
+
+    def celcius_selection(self):
+        self.degree_selection = "celcius"
+        self.celcius_button.setStyleSheet("background-color: #575757;")
+        self.fahrenheit_button.setStyleSheet("background-color: #454545;")
+        #print(degree_selection)
+    def fahrenheit_selection(self):
+        self.degree_selection = "fahrenheit"
+
+        self.fahrenheit_button.setStyleSheet("background-color: #575757;")
+        self.celcius_button.setStyleSheet("background-color: #454545;")
+        #print(degree_selection)
 
     def get_weather(self):
         print("button pressed")
@@ -200,11 +233,15 @@ class Weather(QWidget):
         self.temperature_label.setText(message)
 
     def display_weather(self, data):
-        # LATER ON ADD A BUTTON SWITCH FROM CELCIUS TO FAHRENHEIT
+        
         temperature_kelvin = data["main"]["temp"]
         temperature_celcius = temperature_kelvin - 273.15
+        temperature_fahrenheit = temperature_celcius * 1.8 + 32
 
-        self.temperature_label.setText(f"{temperature_celcius:.1f}°C")
+        if self.degree_selection == "celcius":
+            self.temperature_label.setText(f"{temperature_celcius:.1f}°C")
+        else:
+            self.temperature_label.setText(f"{temperature_fahrenheit:.1f}°F")
 
         weahter_description = data["weather"][0]["description"]
         self.weather_description_label.setText(weahter_description)
